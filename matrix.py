@@ -1,14 +1,10 @@
-from OpenGL.GL import *
-from OpenGL.GLU import *
-from OpenGL.GLUT import *
-
-import random
 import numpy
 import math
 from re import sub
 
 # Set float precision
 numpy.set_printoptions(precision=2)
+
 
 def input_matrix(dimension=2):
     """
@@ -18,6 +14,9 @@ def input_matrix(dimension=2):
     :return: vertices matrix
     :rtype: matrix
     """
+
+    def ordinal(i):
+        return "%d%s" % ((i+1), "tsnrhtdd"[(math.floor((i+1) / 10) % 10 != 1) * ((i+1) % 10 < 4) * (i+1) % 10::4])
 
     print("Creating matrix for", dimension, "dimension vertices")
     # Getting input of matrix order
@@ -41,7 +40,6 @@ def input_matrix(dimension=2):
     while i < matrix_order:
 
         # Message
-        ordinal = lambda n: "%d%s" % ((i+1), "tsnrhtdd"[(math.floor((i+1) / 10) % 10 != 1) * ((i+1) % 10 < 4) * (i+1) % 10::4])
         command = "Insert "+ordinal(i)+" vertices value : "
 
         # Process input
@@ -135,7 +133,7 @@ def input_matrix(dimension=2):
     # Set-up as numpy matrix
     vertices = numpy.array(vertices)
     vertices = numpy.transpose(vertices)
-    return vertices
+    return vertices, matrix_order
 
 
 def multiplication(matrix_1, matrix_2):
@@ -669,12 +667,6 @@ print(result)
 
 """
 
-
-
-
 # To do list :
 # reset
 # exit
-
-
-
