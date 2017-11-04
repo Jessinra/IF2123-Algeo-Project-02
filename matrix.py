@@ -1,6 +1,7 @@
 import numpy
 import math
 from re import sub
+from sys import exit
 
 # Set float precision
 numpy.set_printoptions(precision=2)
@@ -136,6 +137,20 @@ def input_matrix(dimension=2):
     return vertices, matrix_order
 
 
+def input_command():
+    """
+    Function to parse input text
+    :return: command, list of parameters
+    :rtype: string, list
+    """
+
+    raw_input = input("Insert transformation command : ")
+    array = raw_input.strip().split(" ")
+    array = list(filter(None, array))
+
+    return array[0], array[1:]
+
+
 def multiplication(matrix_1, matrix_2):
     """
     Function to return the result of matrix multiplication
@@ -174,6 +189,15 @@ def translate(dx=0, dy=0, dz=0, dim=2):
     # Initializing
     transformation = numpy.identity(dim+1, dtype=int)
 
+    try:
+        dx = float(dx)
+        dy = float(dy)
+        dz = float(dz)
+
+    except Exception as e:
+        print(">>> " + str(e) + " <<<")
+        return transformation
+
     # For 2D
     if dim == 2:
         transformation = numpy.array(([1, 0, dx],
@@ -205,7 +229,7 @@ def dilate(scale=1, dim=2):
 
     # Initializing
     transformation = numpy.identity(dim+1, dtype=int)
-    k = scale
+    k = float(scale)
 
     # For 2D
     if dim == 2:
@@ -335,6 +359,12 @@ def stretch(axis, scale=1, dim=2):
     cont = True
     transformation = numpy.identity(dim+1, dtype=int)
 
+    try:
+        scale = float(scale)
+    except Exception as e:
+        print(">>> " + str(e) + " <<<")
+        return transformation
+
     x = 1
     y = 1
     z = 1
@@ -389,6 +419,12 @@ def shear(axis, scale=1, dim=2):
     cont = True
     transformation = numpy.identity(dim+1, dtype=int)
 
+    try:
+        scale = float(scale)
+    except Exception as e:
+        print(">>> " + str(e) + " <<<")
+        return transformation
+
     x = 0
     y = 0
     z = 0
@@ -414,7 +450,7 @@ def shear(axis, scale=1, dim=2):
                                           [0, 0, 1]))
 
         # For 3D
-        if dim == 3:
+        elif dim == 3:
             transformation = numpy.array(([1, y, z, 0],
                                           [x, 1, z, 0],
                                           [x, y, 1, 0],
@@ -621,52 +657,161 @@ if dimension == 3:
                 [1, 1, 1, 1]
                 ]
 else:
-    vertices = [[5, 3, 2.5],
+    vertices = [[3, 1, 2.5],
                 [1, 1, 2.5],
                 [1, 1, 1]
                 ]
 
-# Testing part
-"""
 
-transformation = translate(dx=2,dy=2,dz=0,dim=dimension)
-result = multiplication(transformation,vertices)
-print("\ntransform : translate")
-print(result)
 
-transformation = dilate(scale = 3, dim=dimension)
-result = multiplication(transformation,vertices)
-print("\ntransform : dilate")
-print(result)
 
-transformation = stretch('x',scale = 1.5, dim=dimension)
-result = multiplication(transformation,vertices)
-print("\ntransform : stretch x axis")
-print(result)
 
-transformation = shear('x',scale = 1, dim=dimension)
-result = multiplication(transformation,vertices)
-print("\ntransform : shear x axis")
-print(result)
+""" HAGAI : PLEASE PUT THINGS UNDER THIS LINE TO THE RIGHT PLACE :) """
 
-transformation = rotate(degree=22, pivot_x=2, pivot_y='2',pivot_z=0,dim=dimension)
-result = multiplication(transformation,vertices)
-print("\ntransform : rotation ")
-print(result)
 
-value_list = [1,3.22,'4',4]
-transformation = custom(value_list, dim=dimension)
-result = multiplication(transformation,vertices)
-print("\ntransform : custom")
-print(result)
+def animate_transformation(vertices, result, frame=200):
+    """
+    Function to animate transformation
+    :param vertices: original vertices
+    :type vertices: list
+    :param result: transformed vertices
+    :type result: list
+    :param frame: frame rate ( divided by how much )
+    :type frame: int
+    :return: None
+    :rtype: None
+    """
 
-transformation = reflect("( 4  , -2)", dim=dimension)
-result = multiplication(transformation,vertices)
-print("\ntransform : reflect")
-print(result)
+    delta = numpy.subtract(result, vertices)
+    transformation_split = (1/frame) * delta
+    animation_vertices_frame = vertices
 
-"""
+    for _ in range(0, frame):
+        animation_vertices_frame = animation_vertices_frame + transformation_split
+        # < DRAW ANIMATION VERTICES HERE >
+        # < add delay if necessary >
 
-# To do list :
-# reset
-# exit
+
+# User input loop
+repeat = 1
+while repeat:
+    command, parameters = input_command()
+
+    if "translate" in command:
+
+        try:
+            dx = parameters[0]
+        except:
+            dx = 0
+        try:
+            dy = parameters[1]
+        except:
+            dy = 0
+        try:
+            dz = parameters[2]
+        except:
+            dz = 0
+
+        transformation = translate(dx=dx, dy=dy, dz=dz, dim=dimension)
+        result = multiplication(transformation, vertices)
+
+    elif "dilate" in command:
+
+        try:
+            scale = parameters[0]
+        except:
+            scale = 1
+
+        transformation = dilate(scale=scale, dim=dimension)
+        result = multiplication(transformation, vertices)
+
+    elif "rotate" in command:
+
+        try:
+            degree = parameters[0]
+        except:
+            degree = 0
+        try:
+            pivot_x = parameters[1]
+        except:
+            pivot_x = 0
+        try:
+            pivot_y = parameters[2]
+        except:
+            pivot_y = 0
+        try:
+            pivot_z = parameters[3]
+        except:
+            pivot_z = 0
+
+        transformation = rotate(degree=degree, pivot_x=pivot_x, pivot_y=pivot_y, pivot_z=pivot_z, dim=dimension)
+        result = multiplication(transformation, vertices)
+
+    elif "reflect" in command:
+
+        try:
+            cond = parameters[0]
+        except:
+            cond = "(0,0)"
+
+        transformation = reflect(cond=cond, dim=dimension)
+        result = multiplication(transformation, vertices)
+
+    elif "shear" in command:
+
+        try:
+            axis = parameters[0]
+        except:
+            axis = 'x'
+        try:
+            scale = parameters[1]
+        except:
+            scale = 1
+
+        transformation = shear(axis=axis, scale=scale, dim=dimension)
+        result = multiplication(transformation, vertices)
+
+    elif "stretch" in command:
+
+        try:
+            axis = parameters[0]
+        except:
+            axis = 'x'
+        try:
+            scale = parameters[1]
+        except:
+            scale = 1
+
+        transformation = stretch(axis=axis, scale=scale, dim=dimension)
+        result = multiplication(transformation, vertices)
+
+    elif "custom" in command:
+        try:
+            value_list = parameters[0:]
+        except:
+            value_list = []
+
+        transformation = custom(value_list, dim=dimension)
+        result = multiplication(transformation, vertices)
+
+    elif "multiple" in command:
+        try:
+            repeat = int(parameters[0]) + repeat
+        except Exception as e:
+            repeat = 1 + repeat
+            print("please re input your command")
+
+    elif "reset" in command:
+        print("yey reset")
+
+    elif "exit" in command:
+        exit(1)
+
+    repeat -= 1
+
+    try:
+        animate_transformation(vertices=vertices_ori, result=result, frame=200)
+    except:
+        pass
+
+

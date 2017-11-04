@@ -12,7 +12,7 @@ import copy
 # Initializing
 numpy.set_printoptions(precision=2)     # Set float precision
 window = 0                              # glut window number
-width, height = 700, 700                # window size
+width, height = 1000, 1000                # window size
 command = ""                            # user inputs
 
 
@@ -189,7 +189,8 @@ class User(threading.Thread):
         Deskripsi
         """
 
-        print("mancay")
+
+
 
 try:
     threadInput = User(2, "Thread-2", 2)
