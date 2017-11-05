@@ -12,7 +12,7 @@ import copy
 # Initializing
 numpy.set_printoptions(precision=2)     # Set float precision
 window = 0                              # glut window number
-width, height = 1000, 1000                # window size
+width, height = 700, 700                # window size
 command = ""                            # user inputs
 
 
@@ -116,9 +116,9 @@ def draw_polygon():
     glColor3f(0.3, 0.4, 1.0)
     i = 0
     while i <= (matrix_order - 1):
-        x = vertices[0][i]
+        x = vertices[0][i] 
         y = vertices[1][i]
-        glVertex2f(float(x), float(y))
+        glVertex2f((float(x)/2) + (width/2), (float(y)/2) + (height/2))
         i = i + 1
     glEnd()
 
@@ -151,6 +151,29 @@ def draw():
     # Draw Polygon
     draw_polygon()
     glutSwapBuffers()  # important for double buffering
+
+
+def animate_transformation(vertices, result, frame=200):
+    """
+    Function to animate transformation
+    :param vertices: original vertices
+    :type vertices: list
+    :param result: transformed vertices
+    :type result: list
+    :param frame: frame rate ( divided by how much )
+    :type frame: int
+    :return: None
+    :rtype: None
+    """
+
+    delta = numpy.subtract(result, vertices)
+    transformation_split = (1/frame) * delta
+    animation_vertices_frame = vertices
+
+    for _ in range(0, frame):
+        animation_vertices_frame = animation_vertices_frame + transformation_split
+        # < DRAW ANIMATION VERTICES HERE >
+        # < add delay if necessary >
 
 
 class Layar(threading.Thread):
@@ -188,8 +211,126 @@ class User(threading.Thread):
         """
         Deskripsi
         """
+        # User input loop
+        repeat = 1
+        while repeat:
+            command, parameters = matrix.input_command()
 
+            if "translate" in command:
+                try:
+                    dx = parameters[0]
+                except:
+                    dx = 0
+                try:
+                    dy = parameters[1]
+                except:
+                    dy = 0
+                try:
+                    dz = parameters[2]
+                except:
+                    dz = 0
 
+                transformation = matrix.translate(dx=dx, dy=dy, dz=dz, dim=dimension)
+                result = matrix.multiplication(transformation, vertices)
+
+            elif "dilate" in command:
+
+                try:
+                    scale = parameters[0]
+                except:
+                    scale = 1
+
+                transformation = matrix.dilate(scale=scale, dim=dimension)
+                result = matrix.multiplication(transformation, vertices)
+
+            elif "rotate" in command:
+
+                try:
+                    degree = parameters[0]
+                except:
+                    degree = 0
+                try:
+                    pivot_x = parameters[1]
+                except:
+                    pivot_x = 0
+                try:
+                    pivot_y = parameters[2]
+                except:
+                    pivot_y = 0
+                try:
+                    pivot_z = parameters[3]
+                except:
+                    pivot_z = 0
+
+                transformation = matrix.rotate(degree=degree, pivot_x=pivot_x, pivot_y=pivot_y, pivot_z=pivot_z, dim=dimension)
+                result = matrix.multiplication(transformation, vertices)
+
+            elif "reflect" in command:
+
+                try:
+                    cond = parameters[0]
+                except:
+                    cond = "(0,0)"
+
+                transformation = matrix.reflect(cond=cond, dim=dimension)
+                result = matrix.multiplication(transformation, vertices)
+
+            elif "shear" in command:
+
+                try:
+                    axis = parameters[0]
+                except:
+                    axis = 'x'
+                try:
+                    scale = parameters[1]
+                except:
+                    scale = 1
+
+                transformation = matrix.shear(axis=axis, scale=scale, dim=dimension)
+                result = matrix.multiplication(transformation, vertices)
+
+            elif "stretch" in command:
+
+                try:
+                    axis = parameters[0]
+                except:
+                    axis = 'x'
+                try:
+                    scale = parameters[1]
+                except:
+                    scale = 1
+
+                transformation = matrix.stretch(axis=axis, scale=scale, dim=dimension)
+                result = matrix.multiplication(transformation, vertices)
+
+            elif "custom" in command:
+                try:
+                    value_list = parameters[0:]
+                except:
+                    value_list = []
+
+                transformation = matrix.custom(value_list, dim=dimension)
+                result = matrix.multiplication(transformation, vertices)
+
+            elif "multiple" in command:
+                try:
+                    repeat = int(parameters[0]) + repeat
+                except:
+                    repeat = 1 + repeat
+                    print("please re input your command")
+
+            elif "reset" in command:
+                result = vertices_ori
+
+            elif "exit" in command:
+                exit(1)
+
+            repeat -= 1
+
+            try:
+                animate_transformation(vertices=vertices_ori, result=result, frame=200)
+            except:
+                pass
 
 
 try:
