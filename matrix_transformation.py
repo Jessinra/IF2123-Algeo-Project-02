@@ -47,6 +47,8 @@ def input_matrix(dimension=2):
         array = raw_input.strip().split(" ")
         array = list(filter(None, array))
 
+        array = [float(x) for x in array]
+
         append = True
 
         # If vertices contain more than dimension value
@@ -94,7 +96,7 @@ def input_matrix(dimension=2):
             # If yes, append extra 0 to the array
             if "yes" in prompt:
                 while len(array) < dimension:
-                    array.append('0')
+                    array.append(float(0))
                 append = True
 
             elif "no" in prompt:
@@ -104,7 +106,7 @@ def input_matrix(dimension=2):
                 print("I assume it was a 'no', please re-input this vertices value...")
 
         # Fill up the last slot - for translation purpose
-        array.append("1")
+        array.append(float(1))
 
         # If there's no problem with vertices value
         if append:
@@ -163,11 +165,11 @@ def multiplication(matrix_1, matrix_2):
 
     # Try to do matrix multiplication
     try:
-        temp = matrix_1 @ matrix_2
+        temp = numpy.matmul(matrix_1, matrix_2)
         return temp
 
     except Exception as e:
-        print(">>> " + str(e) + " <<<")
+        print(">>>  " + str(e) + " <<<")
 
 
 def translate(dx=0, dy=0, dz=0, dim=2):

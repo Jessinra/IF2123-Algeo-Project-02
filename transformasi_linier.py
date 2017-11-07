@@ -1,13 +1,12 @@
 
 from OpenGL.GL import *
 from OpenGL.GLUT import *
-# from OpenGL.GLU import *
-from os import system
-import matrix
+import matrix_transformation
 import threading
 import numpy
 import copy
-# from re import sub
+from time import sleep
+
 
 # Initializing
 numpy.set_printoptions(precision=2)     # Set float precision
@@ -34,13 +33,13 @@ def get_dimension():
 
 def refresh2d(width, height):
     """
-    Deskripsi
-    :param width:
-    :type width:
-    :param height:
-    :type height:
-    :return:
-    :rtype:
+    Procedure to keep the GLUT Window size
+    :param width: width size for window
+    :type width: float
+    :param height: height size for window
+    :type height: float
+    :I.S.: a window
+    :F.S.: the window is keep showing
     """
 
     glViewport(0, 0, width, height)
@@ -53,11 +52,12 @@ def refresh2d(width, height):
 
 def draw_line():
     """
-    Deskripsi
-    :return:
-    :rtype:
+    Procedure to make Line Coordinate in GLUT Window
+    :I.S. : Plain GLUT Window
+    :F.S. : Line Coordinate on GLUT Window
     """
 
+    # Small Size Line
     glLineWidth(0.1)
     glColor3f(0.5, 1.0, 0.9)
     wid = 0
@@ -74,7 +74,7 @@ def draw_line():
             glEnd()
             length += 10
         wid += 50
-    # membuat garis sedang
+    # Medium Size Line
     glLineWidth(2.0)
     wid = 0
     while wid <= width:
@@ -90,7 +90,7 @@ def draw_line():
             glVertex3f(length, wid, 0)
             glEnd()
         wid += 50
-    # membuat garis utama
+    # Main Line
     # ordinat
     glLineWidth(1.5)
     glColor3f(0.5, 0.4, 0.8)
@@ -107,40 +107,31 @@ def draw_line():
 
 def draw_polygon():
     """
-    Deskripsi
-    :return:
-    :rtype:
+    Procedure to draw user polygon input (saved on vertices variable) in GLUT Window
+    :I.S. : Plain GLUT Window, Vertices is a global matrix variable that contain the polygon info
+    :F.S. : Polygon on GLUT Window
     """
 
     glBegin(GL_POLYGON)
     glColor3f(0.3, 0.4, 1.0)
     i = 0
     while i <= (matrix_order - 1):
-        x = vertices[0][i] 
+        x = vertices[0][i]
         y = vertices[1][i]
-        glVertex2f((float(x)/2) + (width/2), (float(y)/2) + (height/2))
+        # casting
+        glVertex2f((float(x) / 2) + (width / 2), (float(y) / 2) + (height / 2))
         i = i + 1
     glEnd()
-
-    """
-    INI KOK BISA?!   apaan gai ?  
-    glBegin(GL_POLYGON)
-    glColor3f(0.0, 0.0, 0.0)
-    glVertex2f(300,300)
-    glVertex2f(200,100)
-    glVertex2f(100,200)
-    glEnd()
-    """
 
 
 def draw():
     """
-
-    :return:
-    :rtype:
+    Procedure to render GLUT Window
+    :I.S. : No Window
+    :F.S. : GLUT Window with line coordinate and user input polygon
     """
 
-    # ondraw is called all the time
+    # Draw is called all the time
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)  # clear the screen
     glLoadIdentity()  # reset position
     glClearColor(0.8, 1.0, 0.9, 0.0)
@@ -153,29 +144,6 @@ def draw():
     glutSwapBuffers()  # important for double buffering
 
 
-def animate_transformation(vertices, result, frame=200):
-    """
-    Function to animate transformation
-    :param vertices: original vertices
-    :type vertices: list
-    :param result: transformed vertices
-    :type result: list
-    :param frame: frame rate ( divided by how much )
-    :type frame: int
-    :return: None
-    :rtype: None
-    """
-
-    delta = numpy.subtract(result, vertices)
-    transformation_split = (1/frame) * delta
-    animation_vertices_frame = vertices
-
-    for _ in range(0, frame):
-        animation_vertices_frame = animation_vertices_frame + transformation_split
-        # < DRAW ANIMATION VERTICES HERE >
-        # < add delay if necessary >
-
-
 class Layar(threading.Thread):
     def __init__(self, thread_id, name, counter):
         threading.Thread.__init__(self)
@@ -185,7 +153,11 @@ class Layar(threading.Thread):
 
     def run(self):
         """
-        Deskripsi
+        This thread execute the rendering command loop for GLUT Window
+        It render all over the time and change when the global variable Vertices
+        are changed.
+        I.S. : No Window
+        F.S. : GLUT Window that rendering over and over
         """
 
         # GUI
@@ -209,13 +181,21 @@ class User(threading.Thread):
 
     def run(self):
         """
-        Deskripsi
+        This thread execute the user command input loop.
+        I.S. : GLUT Window with Polygon defined
+        F.S. : GLUT Window with transformed polygon by user command
         """
+
         # User input loop
+        global vertices
+
         repeat = 1
         while repeat:
-            command, parameters = matrix.input_command()
+            # asking command
+            command, parameters = matrix_transformation.input_command()
+            result = vertices
 
+            # calling translate function
             if "translate" in command:
                 try:
                     dx = parameters[0]
@@ -230,9 +210,10 @@ class User(threading.Thread):
                 except:
                     dz = 0
 
-                transformation = matrix.translate(dx=dx, dy=dy, dz=dz, dim=dimension)
-                result = matrix.multiplication(transformation, vertices)
+                transformation = matrix_transformation.translate(dx=dx, dy=dy, dz=dz, dim=dimension)
+                result = matrix_transformation.multiplication(transformation, vertices)
 
+            # calling dilate function
             elif "dilate" in command:
 
                 try:
@@ -240,9 +221,10 @@ class User(threading.Thread):
                 except:
                     scale = 1
 
-                transformation = matrix.dilate(scale=scale, dim=dimension)
-                result = matrix.multiplication(transformation, vertices)
+                transformation = matrix_transformation.dilate(scale=scale, dim=dimension)
+                result = matrix_transformation.multiplication(transformation, vertices)
 
+            # calling rotate function
             elif "rotate" in command:
 
                 try:
@@ -262,9 +244,15 @@ class User(threading.Thread):
                 except:
                     pivot_z = 0
 
-                transformation = matrix.rotate(degree=degree, pivot_x=pivot_x, pivot_y=pivot_y, pivot_z=pivot_z, dim=dimension)
-                result = matrix.multiplication(transformation, vertices)
+                try:
+                    axis = parameters[4]
+                except:
+                    axis = 'x'
 
+                transformation = matrix_transformation.rotate(degree=degree, pivot_x=pivot_x, pivot_y=pivot_y, pivot_z=pivot_z, dim=dimension, axis=axis)
+                result = matrix_transformation.multiplication(transformation, vertices)
+
+            # calling reflect function
             elif "reflect" in command:
 
                 try:
@@ -272,9 +260,10 @@ class User(threading.Thread):
                 except:
                     cond = "(0,0)"
 
-                transformation = matrix.reflect(cond=cond, dim=dimension)
-                result = matrix.multiplication(transformation, vertices)
+                transformation = matrix_transformation.reflect(cond=cond, dim=dimension)
+                result = matrix_transformation.multiplication(transformation, vertices)
 
+            # calling shear function
             elif "shear" in command:
 
                 try:
@@ -286,9 +275,10 @@ class User(threading.Thread):
                 except:
                     scale = 1
 
-                transformation = matrix.shear(axis=axis, scale=scale, dim=dimension)
-                result = matrix.multiplication(transformation, vertices)
+                transformation = matrix_transformation.shear(axis=axis, scale=scale, dim=dimension)
+                result = matrix_transformation.multiplication(transformation, vertices)
 
+            # calling stretch function
             elif "stretch" in command:
 
                 try:
@@ -300,53 +290,76 @@ class User(threading.Thread):
                 except:
                     scale = 1
 
-                transformation = matrix.stretch(axis=axis, scale=scale, dim=dimension)
-                result = matrix.multiplication(transformation, vertices)
+                transformation = matrix_transformation.stretch(axis=axis, scale=scale, dim=dimension)
+                result = matrix_transformation.multiplication(transformation, vertices)
 
+            # calling custom function
             elif "custom" in command:
                 try:
                     value_list = parameters[0:]
                 except:
                     value_list = []
 
-                transformation = matrix.custom(value_list, dim=dimension)
-                result = matrix.multiplication(transformation, vertices)
+                transformation = matrix_transformation.custom(value_list, dim=dimension)
+                result = matrix_transformation.multiplication(transformation, vertices)
 
+            # calling multiple function
             elif "multiple" in command:
                 try:
                     repeat = int(parameters[0]) + repeat
                 except:
                     repeat = 1 + repeat
                     print("please re input your command")
+                result = vertices
 
+            # reset the vertices value
             elif "reset" in command:
                 result = vertices_ori
 
+            # exiting command
             elif "exit" in command:
                 exit(1)
 
             repeat -= 1
 
-            try:
-                animate_transformation(vertices=vertices_ori, result=result, frame=200)
-            except:
-                pass
+            # animation drawing new vertices
+            if "multiple" not in command:
+                try:
+                    frame = 200
+                    delta = numpy.subtract(result, vertices)
+                    transformation_split = (1 / frame) * delta
 
+                    for _ in range(0, frame):
+                        vertices = vertices + transformation_split
+                        sleep((1/frame))
+                except:
+                    pass
+
+        print("Process successfully executed...")
+
+
+"""
+MAIN PROGRAM
+This program will generate a window to show Linier Transformation on
+2D or 3D (based on user input). User can give transform input command 
+on another window.
+"""
 
 try:
+    # Declaring two thread, User and Layar (GLUT Window)
     threadInput = User(2, "Thread-2", 2)
     threadLayar = Layar(1, "Thread-1", 1)
 
     # Getting dimension info (2D or 3D)
     dimension = get_dimension()
-    vertices, matrix_order = matrix.input_matrix(dimension)
+    vertices, matrix_order = matrix_transformation.input_matrix(dimension)
     print(vertices)
 
     # Saving original vertices
     vertices_ori = copy.deepcopy(vertices)
 
+    # All Thread Start
     threadInput.start()
     threadLayar.start()
 except Exception as e:
-    print(e)
-    system("pause")
+    print(">>> " + str(e) + " <<<")
