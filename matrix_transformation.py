@@ -644,21 +644,3 @@ def multiple(command):
 
     return repeat
 
-dimension = 2
-
-# Input part
-# vertices = input_matrix(dimension=dimension)
-# print(vertices)
-
-# testing vertices
-if dimension == 3:
-    vertices = [[6, 3, 0, 2],
-                [1, 1, 2, 2],
-                [2, 0, 2, 0],
-                [1, 1, 1, 1]
-                ]
-else:
-    vertices = [[3, 1, 2.5],
-                [1, 1, 2.5],
-                [1, 1, 1]
-                ]
