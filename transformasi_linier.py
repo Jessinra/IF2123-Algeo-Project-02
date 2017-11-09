@@ -172,6 +172,7 @@ class Layar(threading.Thread):
         glutMainLoop()
 
 
+
 class User(threading.Thread):
     def __init__(self, thread_id, name, counter):
         threading.Thread.__init__(self)
@@ -188,6 +189,7 @@ class User(threading.Thread):
 
         # User input loop
         global vertices
+        global C
 
         repeat = 1
         while repeat:
@@ -318,6 +320,9 @@ class User(threading.Thread):
 
             # exiting command
             elif "exit" in command:
+                C = 0
+                print("exitting...")
+                glutLeaveMainLoop()         #terminating the window
                 exit(1)
 
             repeat -= 1
@@ -336,7 +341,7 @@ class User(threading.Thread):
                     pass
 
         print("Process successfully executed...")
-
+        
 
 """
 MAIN PROGRAM
@@ -350,16 +355,20 @@ try:
     threadInput = User(2, "Thread-2", 2)
     threadLayar = Layar(1, "Thread-1", 1)
 
+    # Initialize
+    threadLayar.start()
+    matrix_order = 0
+
     # Getting dimension info (2D or 3D)
     dimension = get_dimension()
     vertices, matrix_order = matrix_transformation.input_matrix(dimension)
     print(vertices)
 
+    # Command Thread Start
+    threadInput.start()
+
     # Saving original vertices
     vertices_ori = copy.deepcopy(vertices)
 
-    # All Thread Start
-    threadInput.start()
-    threadLayar.start()
 except Exception as e:
     print(">>> " + str(e) + " <<<")
